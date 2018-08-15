@@ -32,6 +32,11 @@ router
 router
     .route('/validate')
     .post(VerifyToken,crtlPromtion.validateCode);
+    
+router
+    .route('/promotions/status/:id')
+    .put(VerifyToken,crtlPromtion.updatestatus);
+
 
 
 

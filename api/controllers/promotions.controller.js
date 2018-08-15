@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Promotion = mongoose.model('Promocodes');
 var polyline = require('google-polyline')
 var randomstring = require("randomstring");
+var distance = require('google-distance-matrix');
 
 
 /**
@@ -106,8 +107,6 @@ module.exports.generateCodes = (req, res) => {
   })
 }
 
-
-
   Promotion
       .create( codes, (err, promotion) =>{
 
@@ -122,8 +121,7 @@ module.exports.generateCodes = (req, res) => {
                 res
                  .status(201)
                  .json({"message":"Successfull", "promotion":promotion.length});
-          }
-      
+          }  
     });
 
 };
@@ -133,7 +131,7 @@ module.exports.generateCodes = (req, res) => {
  * @param {*} res 
  */
 module.exports.updateOne = (req, res) => {
-  var promoid = req.query.id;
+  var promoid = req.params.id;
 
   console.log('GET id', promoid);
 
@@ -155,9 +153,9 @@ module.exports.updateOne = (req, res) => {
           return;
       }
       promotion.code = randomstring.generate(7),
-      promotion.active= true,
+      promotion.active= req.body.active,
       promotion.value =req.body.value,
-      promotion.expired = false,
+      promotion.expired = req.body.expired,
       promotion.radius = req.body.radius,
       promotion.expirydate= new Date(req.body.expirydate),
       promotion.event = { address : req.body.address, coordinates : [parseFloat(req.body.lng), parseFloat(req.body.lat)] }
@@ -222,22 +220,73 @@ module.exports.deleteOne = function(req, res) {
  */
 module.exports.validateCode = (req, res) => {
 
+  var event = {};
+  var origin = {"lat": parseFloat(req.body.lato), "lng":parseFloat(req.body.lngo)};
+  var destination = {"lat": parseFloat(req.body.latd), "lng":parseFloat(req.body.lngd)};
+
   Promotion
       .findOne({code: req.body.code}, 
           (err, promocode) =>{
               if (err) return res.status(500).send('Error on the server.');
               if (!promocode) return res.status(404).send('Invalid user found.');
                   
-            console.log(promocode)
+         
+      
+          event.lat = promocode.event.coordinates['1'];
+          event.lng = promocode.event.coordinates['0'];
+
+            console.log("desitnation",destination);
+            console.log("origins", origin)
+            console.log("event", event)
+
+            var distance = getDistance(event, destination)
+
+          console.log("radiu= 100 dropoff=",distance)
+              if( distance > parseFloat(promocode.radius) ){
+                  /**
+                   * How far off the event location is the rider going
+                   */
+                  var diff = distance - parseFloat(promocode.radius);
+                
+                  res.status(200).send({"message" :"This code can only be used to go to the safety event, your beyond the event location by"+diff}).json();
+              }else{
+                updateCode(promocode._id, req, res);
+                
+              }
 
 
-           res.status(200).send(promocode).json();
+
     });
 }
 
+/**
+ * Option to use the a library or google API
+ * @param {*} x 
+ */
+var rad = function(x) {
+  return x * Math.PI / 180;
+};
+
+var getDistance = function(event_address, rider_destination) {
+  var R = 6378137; // Earth’s mean radius in meter
+  var dLat = rad(rider_destination.lat - event_address.lat);
+  var dLong = rad(rider_destination.lng - event_address.lng);
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(rad(event_address.lat) * Math.cos(rad(rider_destination.lat))) *
+    Math.sin(dLong / 2) * Math.sin(dLong / 2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  var d = R * c;
+  return d; // returns the distance in meter
+};
 
 
-function updateCode(codeid){
+/**
+ * Function to mark card inactive after being quereid
+ * @param {*} codeid 
+ * @param {*} req 
+ * @param {*} res 
+ */
+function updateCode(codeid, req, res){
   var promoid = codeid
 
   console.log('GET id', promoid);
@@ -275,15 +324,61 @@ function updateCode(codeid){
             res
               .status(500)
               .json(err);
+              return
           } else {
             console.log(promotionUpdate);
-            res
-              .status(204)
-              .send(promotionUpdate)
-              .json();
+            res.status(200).send(promotionUpdate).json();
+           
+           
           }
         });
 
 
     });
 }
+
+/**
+ * Change card state
+ */
+module.exports.updatestatus = (req, res) => {
+  var promoid = req.params.id;
+
+  console.log('GET id', promoid);
+
+  Promotion
+    .findById(promoid)
+    .select('-promocodes')
+    .exec(function(err, promotion) {
+      if (err) {
+        console.log("Error occured processing your request");
+        res
+          .status(500)
+          .json(err);
+          return;
+      } else if(!promotion) {
+        console.log("id not found in database", promoid);
+        res
+          .status(404)
+          .send( "Promotions ID not found " + promoid );
+          return;
+      }
+      promotion.active= req.body.active
+
+      promotion
+        .save(function(err, promotionUpdate) {
+          if(err) {
+            res
+              .status(500)
+              .json(err);
+          } else {
+            console.log(promotionUpdate);
+            res
+              .status(204)
+              .json(promotionUpdate);
+          }
+        });
+
+
+    });
+
+};
