@@ -28,13 +28,10 @@ radius:Number,
             },
         destination: {
                 desitnation: String,
-                //Always store coordinate Latitude, long order
                 coordinates: {
                     type: [Number],
-                    index : '2dsphere'
-                }
-            },
-event: {
+                    index : '2dsphere' }},
+        event: {
                 address: String,
                 //Always store coordinate Latitude, long order
                 coordinates: {
@@ -42,9 +39,10 @@ event: {
                     index : '2dsphere'
                 }
             },
-
-
+            polyline: String
 });
+
+
 module.exports = mongoose.model('promotions', promocodes, 'promotions') ;
 
 

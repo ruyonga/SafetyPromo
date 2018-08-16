@@ -1,8 +1,11 @@
 const mongoose = require('mongoose');
 const Promotion = mongoose.model('promotions');
 var randomstring = require("randomstring");
-var MongoClient = require('mongodb').MongoClient;
-const assert = require('assert');
+var polyline = require( 'google-polyline' );
+const googleMapsClient = require('@google/maps').createClient({
+  key: process.env.GOOGLE_API_KEY,
+  Promise: Promise
+});
 /**
  * Get all Promotions
  * @param {*} req 
@@ -101,7 +104,7 @@ var codes = []
                   expirydate: new Date(req.body.expirydate),
                   event : {
                     address : req.body.address,
-                    coordinates : [parseFloat(req.body.lng), parseFloat(req.body.lat)]
+                    coordinates : [parseFloat(req.body.lat), parseFloat(req.body.lng)]
                   }
   })
 }
@@ -218,15 +221,56 @@ module.exports.deleteOne = function(req, res) {
 
   
 /**
- * Login
+ * The challenge, query code, return origin, destinateion ad pollyline
  * @param {*} req 
  * @param {*} res 
  */
 module.exports.validateCode = (req, res) => {
 
+  var origin = {};
+  var destination = {};
+
+console.log("origin", req.body.origin);
+  //Make call to google to get the cordinates of the origin
+  googleMapsClient.geocode({
+      address: req.body.origin
+    })
+    .asPromise()
+    .then((response) => {
+      console.log("RES", response.json.results);
+      var mapobj = response.json.results;
+      console.log("origin", mapobj[0]);
+        origin.lat = parseFloat(mapobj[0]['geometry'].location.lat);
+        origin.lng = parseFloat(mapobj[0]['geometry'].location.lng);
+
+      }).catch((err) => {
+        console.log("ERR", err);
+        return res.status(500).send('Error on the server getting location, please confirm the address');
+
+      });
+ 
+console.log("destination",req.body.destination);
+ //Make call to google to get the cordinates of the destination
+ googleMapsClient.geocode({
+  address: req.body.destination
+}).asPromise()
+.then((response) => {
+  console.log("RES", response.json.results);
+  var mapobj = response.json.results;
+  console.log("destination", mapobj[0]);
+          destination.lat =  parseFloat(mapobj[0]['geometry'].location.lat);
+          destination.lng = parseFloat(mapobj[0]['geometry'].location.lng);
+          checkCode(req, res, destination, origin)
+  }).catch((err) => {
+    console.log("ERR", err);
+    return res.status(500).send('Error on the server getting location, please confirm the address');
+
+  });
+
+}
+
+var checkCode = (req, res, destination, origin)=>{
   var event = {};
-  var origin = {"lat": parseFloat(req.body.lato), "lng":parseFloat(req.body.lngo)};
-  var destination = {"lat": parseFloat(req.body.latd), "lng":parseFloat(req.body.lngd)};
 
   Promotion
       .findOne({code: req.body.code}, 
@@ -236,8 +280,8 @@ module.exports.validateCode = (req, res) => {
               if(!promocode.active) return res.status(402).send('Code is either expired or already used..');
          
       
-          event.lat = promocode.event.coordinates['1'];
-          event.lng = promocode.event.coordinates['0'];
+          event.lat = promocode.event.coordinates['0'];   //lat
+          event.lng = promocode.event.coordinates['1'];   //long
 
             console.log("desitnation",destination);
             console.log("origins", origin)
@@ -313,13 +357,10 @@ function updateCode(codeid, req, res){
       }
       promotion.active= false,
       promotion.expired = true,
-      promotion.origin = {
-               origin : req.body.origin ,
-              coordinates: [parseFloat(req.body.lngo), parseFloat(req.body.lato)]
-            },
-      promotion.destination =
-                   {  desitnation : req.body.destination , 
-                      coordinates: [parseFloat(req.body.lngd), parseFloat(req.body.latd)]  }
+      promotion.origin = {origin : req.body.origin , coordinates: [parseFloat(req.body.lato), parseFloat(req.body.lngo)] },
+      promotion.destination = {  desitnation : req.body.destination , coordinates: [parseFloat(req.body.latd),parseFloat(req.body.lngd)]  },
+      promotion.polyline = polyline.encode([  [parseFloat(req.body.lato), parseFloat(req.body.lngo)],[parseFloat(req.body.latd),parseFloat(req.body.lngd)]
+      ])
 
       promotion
         .save(function(err, promotionUpdate) {
@@ -383,6 +424,26 @@ module.exports.updatestatus = (req, res) => {
               .json(promotionUpdate);
           }
         });
+
+
+    });
+
+};
+
+
+/**
+ * Get active codes only
+ */
+module.exports.getActiveCode = (req, res)=>{
+
+  Promotion
+      .findOne({active: true}, 
+          (err, promocode) =>{
+              if (err) return res.status(500).send('Error on the server.');
+              if (!promocode) return res.status(404).send('Sorry this promocode is invalid, does not exist in our system.');
+
+            res.status(200).send().json();
+
 
 
     });

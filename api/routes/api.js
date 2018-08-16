@@ -17,24 +17,28 @@ router.get('/', (req, res) => {
 
 //Promotions Routes
 router
-    .route('/promotions')
+    .route('/promocode')
     .get(VerifyToken,VerifyToken,crtlPromtion.getAllCodes)
     .post(VerifyToken,crtlPromtion.generateCodes);
 
 
 router
-    .route('/promotions/:id')
+    .route('/promocode/:id')
     .get(VerifyToken,crtlPromtion.getOne)
     .put(VerifyToken,crtlPromtion.updateOne)
     .delete(VerifyToken,crtlPromtion.deleteOne);
 
 
 router
-    .route('/validate')
-    .post(VerifyToken,crtlPromtion.validateCode);
+    .route('/promocode/validate')
+    .post(VerifyToken, crtlPromtion.validateCode);
     
 router
-    .route('/promotions/status/:id')
+    .route('/promocode/getActiveCodes')
+    .get(VerifyToken, crtlPromtion.getActiveCode);
+    
+router
+    .route('/promocode/status/:id')
     .put(VerifyToken,crtlPromtion.updatestatus);
 
 
