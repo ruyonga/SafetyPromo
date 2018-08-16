@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Promotion = mongoose.model('Promocodes');
+const Promotion = mongoose.model('promotions');
 var polyline = require('google-polyline')
 var randomstring = require("randomstring");
 

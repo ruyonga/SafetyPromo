@@ -26,7 +26,7 @@ radius:Number,
                     index : '2dsphere'
                 }
             },
-    desitnation: {
+        destination: {
                 desitnation: String,
                 //Always store coordinate Latitude, long order
                 coordinates: {
@@ -45,7 +45,7 @@ event: {
 
 
 });
-module.exports = mongoose.model('Promocodes', promocodes, 'promocodes') ;
+module.exports = mongoose.model('promotions', promocodes, 'promotions') ;
 
 
 

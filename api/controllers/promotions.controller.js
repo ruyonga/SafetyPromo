@@ -1,10 +1,8 @@
 const mongoose = require('mongoose');
-const Promotion = mongoose.model('Promocodes');
-var polyline = require('google-polyline')
+const Promotion = mongoose.model('promotions');
 var randomstring = require("randomstring");
-var distance = require('google-distance-matrix');
-
-
+var MongoClient = require('mongodb').MongoClient;
+const assert = require('assert');
 /**
  * Get all Promotions
  * @param {*} req 
@@ -30,14 +28,12 @@ module.exports.getAllCodes = (req, res)=>{
 
     Promotion
             .find()
-            .skip(offset)
-            .limit(count)
             .exec((err, promotions)=>{
                 if(err){
                     console.log(err)
                     return
                 }
-                console.log("found promotions", promotions);
+                //console.log("found promotions", promotions);
                 res.status(200)               
                 .json(promotions);
             });
@@ -91,7 +87,10 @@ module.exports.getOne = (req, res) =>{
  */
 module.exports.generateCodes = (req, res) => {
 
-  var codes = []
+/**
+ * Create an  object arrary to generate x number of codes then do  bulk write.
+ */
+var codes = []
 
   for(var i=0; i < req.body.codenum; i++){
     codes.push({ code: randomstring.generate(7),
@@ -123,6 +122,11 @@ module.exports.generateCodes = (req, res) => {
                  .json({"message":"Successfull", "promotion":promotion.length});
           }  
     });
+
+
+
+
+
 
 };
 /**
@@ -228,8 +232,8 @@ module.exports.validateCode = (req, res) => {
       .findOne({code: req.body.code}, 
           (err, promocode) =>{
               if (err) return res.status(500).send('Error on the server.');
-              if (!promocode) return res.status(404).send('Invalid user found.');
-                  
+              if (!promocode) return res.status(404).send('Sorry this promocode is invalid, does not exist in our system.');
+              if(!promocode.active) return res.status(402).send('Code is either expired or already used..');
          
       
           event.lat = promocode.event.coordinates['1'];
@@ -246,9 +250,9 @@ module.exports.validateCode = (req, res) => {
                   /**
                    * How far off the event location is the rider going
                    */
-                  var diff = distance - parseFloat(promocode.radius);
+                  var diff = Math.round((distance - parseFloat(promocode.radius)) * 100) / 100;
                 
-                  res.status(200).send({"message" :"This code can only be used to go to the safety event, your beyond the event location by"+diff}).json();
+                  res.status(400).send({"message" :"This code can only be used to go to the safety event, your beyond the event location by"+diff, "error":true}).json();
               }else{
                 updateCode(promocode._id, req, res);
                 
@@ -313,11 +317,10 @@ function updateCode(codeid, req, res){
                origin : req.body.origin ,
               coordinates: [parseFloat(req.body.lngo), parseFloat(req.body.lato)]
             },
-      promotion.desitnation =
-                   {  
-                      desitnation : req.body.desitnation , 
-                      coordinates: [parseFloat(req.body.lngd), parseFloat(req.body.latd)]
-              }
+      promotion.destination =
+                   {  desitnation : req.body.destination , 
+                      coordinates: [parseFloat(req.body.lngd), parseFloat(req.body.latd)]  }
+
       promotion
         .save(function(err, promotionUpdate) {
           if(err) {
@@ -326,8 +329,9 @@ function updateCode(codeid, req, res){
               .json(err);
               return
           } else {
+            
             console.log(promotionUpdate);
-            res.status(200).send(promotionUpdate).json();
+            res.status(200).send( promotionUpdate).json( );
            
            
           }
@@ -343,7 +347,7 @@ function updateCode(codeid, req, res){
 module.exports.updatestatus = (req, res) => {
   var promoid = req.params.id;
 
-  console.log('GET id', promoid);
+  console.log('update', req.body.id, req.body.active, req.body.expired);
 
   Promotion
     .findById(promoid)
@@ -362,7 +366,9 @@ module.exports.updatestatus = (req, res) => {
           .send( "Promotions ID not found " + promoid );
           return;
       }
-      promotion.active= req.body.active
+      promotion.active= req.body.active;
+      promotion.expired = req.body.expired;
+
 
       promotion
         .save(function(err, promotionUpdate) {
@@ -371,7 +377,7 @@ module.exports.updatestatus = (req, res) => {
               .status(500)
               .json(err);
           } else {
-            console.log(promotionUpdate);
+            //console.log(promotionUpdate);
             res
               .status(204)
               .json(promotionUpdate);
