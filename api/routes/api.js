@@ -7,7 +7,6 @@ var VerifyToken = require('../../verify');
 
 const crtlPromtion = require('../controllers/promotions.controller');
 const crtlUsers = require('../controllers/user.controller');
-const crtlPCode = require('../controllers/promocode.controller');
 /**
  * Home 
  */
@@ -34,14 +33,16 @@ router
     .post(VerifyToken, crtlPromtion.validateCode);
     
 router
-    .route('/promocode/getActiveCodes')
+    .route('/getActiveCodes')
     .get(VerifyToken, crtlPromtion.getActiveCode);
     
 router
     .route('/promocode/status/:id')
     .put(VerifyToken,crtlPromtion.updatestatus);
 
-
+router
+    .route('/promocode/updateAll')
+    .post(VerifyToken, crtlPromtion.updateAll)
 
 
 /*

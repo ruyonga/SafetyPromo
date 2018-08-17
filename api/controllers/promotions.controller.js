@@ -19,7 +19,7 @@ module.exports.getAllCodes = (req, res)=>{
    
 
 /**
- * pagination of results
+ * pagination of results just incase
  */
     if(req.query && req.query.offset){
         offset = parseInt(req.query.offset, 10);
@@ -95,6 +95,8 @@ module.exports.generateCodes = (req, res) => {
  */
 var codes = []
 
+if(req.body  && req.body.codenum){
+
   for(var i=0; i < req.body.codenum; i++){
     codes.push({ code: randomstring.generate(7),
                   active: true,
@@ -125,7 +127,10 @@ var codes = []
                  .json({"message":"Successfull", "promotion":promotion.length});
           }  
     });
-
+  }else{
+    return res.status(400).send("Post data is requred, and number of codes to generate");
+    
+  }
 
 
 
@@ -217,8 +222,6 @@ module.exports.deleteOne = function(req, res) {
     });
 };
 
-
-
   
 /**
  * The challenge, query code, return origin, destinateion ad pollyline
@@ -228,87 +231,113 @@ module.exports.deleteOne = function(req, res) {
 module.exports.validateCode = (req, res) => {
 
   var origin = {};
-  var destination = {};
+  
+  console.log("Step 1 check for code in the db")
 
-console.log("origin", req.body.origin);
-  //Make call to google to get the cordinates of the origin
-  googleMapsClient.geocode({
-      address: req.body.origin
-    })
-    .asPromise()
-    .then((response) => {
-      console.log("RES", response.json.results);
-      var mapobj = response.json.results;
-      console.log("origin", mapobj[0]);
-        origin.lat = parseFloat(mapobj[0]['geometry'].location.lat);
-        origin.lng = parseFloat(mapobj[0]['geometry'].location.lng);
-
-      }).catch((err) => {
-        console.log("ERR", err);
-        return res.status(500).send('Error on the server getting location, please confirm the address');
-
-      });
- 
-console.log("destination",req.body.destination);
- //Make call to google to get the cordinates of the destination
- googleMapsClient.geocode({
-  address: req.body.destination
-}).asPromise()
-.then((response) => {
-  console.log("RES", response.json.results);
-  var mapobj = response.json.results;
-  console.log("destination", mapobj[0]);
-          destination.lat =  parseFloat(mapobj[0]['geometry'].location.lat);
-          destination.lng = parseFloat(mapobj[0]['geometry'].location.lng);
-          checkCode(req, res, destination, origin)
-  }).catch((err) => {
-    console.log("ERR", err);
-    return res.status(500).send('Error on the server getting location, please confirm the address');
-
-  });
-
-}
-
-var checkCode = (req, res, destination, origin)=>{
-  var event = {};
-
-  Promotion
-      .findOne({code: req.body.code}, 
+  var code = req.body.code;
+    Promotion
+      .findOne({code : code}, 
           (err, promocode) =>{
               if (err) return res.status(500).send('Error on the server.');
               if (!promocode) return res.status(404).send('Sorry this promocode is invalid, does not exist in our system.');
               if(!promocode.active) return res.status(402).send('Code is either expired or already used..');
-         
-      
-          event.lat = promocode.event.coordinates['0'];   //lat
-          event.lng = promocode.event.coordinates['1'];   //long
+           
 
-            console.log("desitnation",destination);
-            console.log("origins", origin)
-            console.log("event", event)
+              /**
+               * Now that we know we have the code in system, lets find the origin and destination co-ordinates using
+               * google maps api
+               */
 
-            var distance = getDistance(event, destination)
+              console.log("Step 2 called get origin address");
 
-          console.log("radiu= 100 dropoff=",distance)
-              if( distance > parseFloat(promocode.radius) ){
-                  /**
-                   * How far off the event location is the rider going
-                   */
-                  var diff = Math.round((distance - parseFloat(promocode.radius)) * 100) / 100;
-                
-                  res.status(400).send({"message" :"This code can only be used to go to the safety event, your beyond the event location by"+diff, "error":true}).json();
-              }else{
-                updateCode(promocode._id, req, res);
-                
-              }
+                    //Make call to google to get the cordinates of the origin
+                    googleMapsClient.geocode({
+                        address: req.body.origin
+                      })
+                      .asPromise()
+                      .then((response) => {
+                        var mapobj = response.json.results;
+                          origin.lat = parseFloat(mapobj[0]['geometry'].location.lat);
+                          origin.lng = parseFloat(mapobj[0]['geometry'].location.lng);
+
+                          /**
+                           * We get the origin cordinates, call the function to get the desitination address
+                           * 
+                           */
+                          getDestination(req, promocode, origin, res)
+
+                        }).catch((err) => {
+                          console.log("ERR", err);
+                          return res.status(500).send('Error on the server getting pick address, please confirm the address');
+
+                        });
 
 
-
+                   
     });
 }
+/**
+ * Destination cordinates and calculate distance from venue
+ */
+var getDestination = (req, promocode, origin, res)=>{
+  console.log("Step 3 called get destination address")
+   //Make call to google to get the cordinates of the destination
+   var destination = {};
+   var event = {}
+   googleMapsClient.geocode({
+    address: req.body.destination
+    }).asPromise()
+    .then((response) => {
+        var mapobj = response.json.results;
+                destination.lat =  parseFloat(mapobj[0]['geometry'].location.lat);
+                destination.lng = parseFloat(mapobj[0]['geometry'].location.lng);
+
+
+                /**
+                 * After getting the destination cordinates, let calculate the disatnce between the 
+                 * event venue the riders destination, is should be less or equal to radus
+                 * 
+                 */
+                event.lat = promocode.event.coordinates['0'];   //lat
+                event.lng = promocode.event.coordinates['1'];   //long
+
+                console.log("desitnation",destination);
+                console.log("origins", origin)
+                console.log("event", event)
+      
+                  var distance = getDistance(event, destination)
+      
+                console.log("radiu= 100 dropoff=",distance)
+                    if( distance > parseFloat(promocode.radius) ){
+                        /**
+                         * How far off the event location is the rider going
+                         */
+                        var diff = Math.round((distance - parseFloat(promocode.radius)) * 100) / 100;
+                      
+                        res.status(400).send({"message" :"This code can only be used to go to the safety event, your beyond the event location by"+diff, "error":true}).json();
+                    }else{
+                      /**
+                       * Now that we know the rider is going to the venue, we need to set the code inactive since the user 
+                       * will have used it,
+                       * Proceed to update the promocode as inactive since it has been used.
+                       */
+                      updateCode(promocode._id, destination, origin, req,  res);
+                      
+                    }
+
+        })
+      .catch((err) => {
+          console.log("ERR", err);
+          return res.status(500).send('Error on the server getting location, please confirm the address');
+
+   });
+}
+
+
+
 
 /**
- * Option to use the a library or google API
+ * Option to use the a library or google  distance API
  * @param {*} x 
  */
 var rad = function(x) {
@@ -334,7 +363,7 @@ var getDistance = function(event_address, rider_destination) {
  * @param {*} req 
  * @param {*} res 
  */
-function updateCode(codeid, req, res){
+function updateCode(codeid, destination, origin, req,  res){
   var promoid = codeid
 
   console.log('GET id', promoid);
@@ -343,37 +372,29 @@ function updateCode(codeid, req, res){
     .findById(promoid)
     .exec(function(err, promotion) {
       if (err) {
-        console.log("Error occured processing your request");
-        res
-          .status(500)
-          .json(err);
-          return;
+        console.log("Error occured processing your request", err);
+        
       } else if(!promotion) {
-        console.log("id not found in database", promoid);
-        res
-          .status(404)
-          .send( "Promotions ID not found " + promoid );
-          return;
+        console.log("Code id not found in database", promoid);
+    
       }
-      promotion.active= false,
-      promotion.expired = true,
-      promotion.origin = {origin : req.body.origin , coordinates: [parseFloat(req.body.lato), parseFloat(req.body.lngo)] },
-      promotion.destination = {  desitnation : req.body.destination , coordinates: [parseFloat(req.body.latd),parseFloat(req.body.lngd)]  },
-      promotion.polyline = polyline.encode([  [parseFloat(req.body.lato), parseFloat(req.body.lngo)],[parseFloat(req.body.latd),parseFloat(req.body.lngd)]
-      ])
+
+      promotion.origin = {origin : req.body.origin , coordinates: [origin.lat, origin.lng] },
+      promotion.destination = {  destination : req.body.destination , coordinates: [destination.lat,destination.lng]  },
+      promotion.polyline = polyline.encode([  [origin.lat, origin.lng],[destination.lat,destination.lng]])
 
       promotion
         .save(function(err, promotionUpdate) {
           if(err) {
-            res
-              .status(500)
-              .json(err);
-              return
+            console.log("Card status code not be updates", promoid)
           } else {
-            
-            console.log(promotionUpdate);
-            res.status(200).send( promotionUpdate).json( );
-           
+            /**
+             * Finally requturn the results.
+             */
+            res.status(200).send(promotionUpdate).json();
+
+            console.log("Card updated successfully", promotionUpdate);
+            return;
            
           }
         });
@@ -392,7 +413,6 @@ module.exports.updatestatus = (req, res) => {
 
   Promotion
     .findById(promoid)
-    .select('-promocodes')
     .exec(function(err, promotion) {
       if (err) {
         console.log("Error occured processing your request");
@@ -404,7 +424,7 @@ module.exports.updatestatus = (req, res) => {
         console.log("id not found in database", promoid);
         res
           .status(404)
-          .send( "Promotions ID not found " + promoid );
+          .send( "code ID not found " + promoid );
           return;
       }
       promotion.active= req.body.active;
@@ -430,19 +450,46 @@ module.exports.updatestatus = (req, res) => {
 
 };
 
+/*
+Update all
+*/
+module.exports.updateAll = (req, res) => {
+
+
+
+  Promotion.updateMany({$or: [
+    {active: true},
+    {active: false}
+      ]}, {$set: {active: req.body.active}},
+    (err, promotionUpdate) =>{
+    if(err) {
+      res
+        .status(500)
+        .json(err);
+    } else {
+      //console.log(promotionUpdate);
+      res
+        .status(204)
+        .send(promotionUpdate)
+      
+    }
+  });
+
+};
 
 /**
  * Get active codes only
  */
 module.exports.getActiveCode = (req, res)=>{
 
+
   Promotion
-      .findOne({active: true}, 
-          (err, promocode) =>{
+      .find({ "active" : true}, 
+           (err, promocode) =>{
               if (err) return res.status(500).send('Error on the server.');
               if (!promocode) return res.status(404).send('Sorry this promocode is invalid, does not exist in our system.');
 
-            res.status(200).send().json();
+            res.status(200).send(promocode).json();
 
 
 

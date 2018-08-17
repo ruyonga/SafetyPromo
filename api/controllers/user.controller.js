@@ -9,8 +9,6 @@ var bcrypt = require('bcryptjs');
  * @param {*} res 
  */
 module.exports.registerUser = (req, res) => {
-    console.log(req.body);
-
     var hashedPassword = bcrypt.hashSync(req.body.password, 8);
 
     User.create({
