@@ -1,7 +1,7 @@
 
 const mongoose = require('mongoose');
 
-const dbUrl  = process.env.DEV_DB
+const dbUrl  = process.env.PROD_DB
 mongoose.connect(dbUrl, err =>{
     if(err){
         console.log(err)
