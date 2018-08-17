@@ -4,6 +4,7 @@ var promocode = require('../api/controllers/promotions.controller');
 var request = require('request');
  
 var url = "http://localhost:5000/api/v1"
+var token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjViNzJhZDJlOWRlZmNiNDI2YTVmMDZiMiIsImlhdCI6MTUzNDUwNjA5NSwiZXhwIjoxNTM0NTkyNDk1fQ.D0pGpJZX4v2o12juHpfT_aEZ0qJt9QLfTEGIQ5JOdYc';
 
 
 
@@ -39,8 +40,7 @@ describe("User can log In? ", function(){
 
 
 describe("should return all codes", function(){
-    var token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjViNzJhZDJlOWRlZmNiNDI2YTVmMDZiMiIsImlhdCI6MTUzNDUwNjA5NSwiZXhwIjoxNTM0NTkyNDk1fQ.D0pGpJZX4v2o12juHpfT_aEZ0qJt9QLfTEGIQ5JOdYc';
-
+ 
     
     it("has codes in the system", function(){
         
@@ -62,4 +62,25 @@ describe("should return all codes", function(){
                     
        
     });
+});
+
+
+describe("should return valid code details", function(){
+
+        it("Has the code object with status 200", function(done){
+            var options = {
+                url: url+'/promocode/validate',
+                headers: {
+                  'x-access-token': token
+                },
+                form: { code: "YYeBi4u", origin: "Mutungo", destination:"Makerere University Main Gate" }
+              };
+
+            request.post(options ,function(err, httpResponse,body) {
+                this.timeout(5000);
+                expect(httpResponse.statusCode).to.equal(200);
+              done();
+            });
+          });
+
 });
