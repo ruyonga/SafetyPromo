@@ -29,7 +29,7 @@ describe("User can log In? ", function(){
 
         it("returns token", function(done) {
 
-        request.post(url+'/auth/login', { form: { email: "dd@rr.com", password: "danny123" }} ,function(err, httpResponse,body) {
+        request.post('/auth/login', { form: { email: "dd@rr.com", password: "danny123" }} ,function(err, httpResponse,body) {
                 expect(httpResponse.statusCode).to.equal(200);
               done();
             });

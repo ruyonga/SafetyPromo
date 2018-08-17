@@ -12,13 +12,10 @@ module.exports.registerUser = (req, res) => {
     var hashedPassword = bcrypt.hashSync(req.body.password, 8);
 
     User.create({
-        username : req.body.username,
+        username : req.body.name,
         email : req.body.email,
-        password : hashedPassword,
-        fullnames: req.body.fullnames,
-        phonenumber: req.body.phonenumber,
-        sex: req.body.sex,
-        position: req.body.position
+        password : hashedPassword
+     
       }, (err, user) => {
             if (err) return res.status(500).send("There was a problem registering the user.")
             // create a token

@@ -95,6 +95,9 @@ module.exports.generateCodes = (req, res) => {
  */
 var codes = []
 
+console.log(req.body);
+
+
 if(req.body  && req.body.codenum){
 
   for(var i=0; i < req.body.codenum; i++){
