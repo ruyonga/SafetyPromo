@@ -33,10 +33,10 @@ $ node server.js
 |        | POST      | api/v1/promocode                 |
 |        | GET|HEAD  | api/v1/getActiveCodes            |
 |        | POST      | api/v1/promocode/validate        |
-|        | POST      | api/v1/promocode/updateAll        |
+|        | POST      | api/v1/promocode/updateAll       |
 |        | PUT|PATCH | api/v1//promocode/status/:id     |
-|        | POST      | api/auth/register                |
-|        | POST      | api/auth/login     
+|        | POST      | api/v1/auth/register             |
+|        | POST      | api/v1/auth/login     
 |
 ```
 
