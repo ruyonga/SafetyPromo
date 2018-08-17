@@ -28,40 +28,46 @@ $ npm test
 
 <h4>Api</h4>
 #### Endpoints
-| Domain | Method    | URI                              |
-|--------|-----------|------------------------------    |
-|        | GET|HEAD  | api/v1/promocode                 |
-|        | POST      | api/v1/promocode                 |
-|        | GET|HEAD  | api/v1/getActiveCodes            |
-|        | POST      | api/v1/promocode/validate        |
-|        | POST      | api/promo-codes/updateAll        |
-|        | PUT|PATCH | api/v1//promocode/status/:id     |
-|        | POST      | api/auth/register                |
-|        | POST      | api/auth/login                   |
-
+    | Domain | Method    | URI                              |
+    |--------|-----------|------------------------------    |
+    |        | GET|HEAD  | api/v1/promocode                 |
+    |        | POST      | api/v1/promocode                 |
+    |        | GET|HEAD  | api/v1/getActiveCodes            |
+    |        | POST      | api/v1/promocode/validate        |
+    |        | POST      | api/promo-codes/updateAll        |
+    |        | PUT|PATCH | api/v1//promocode/status/:id     |
+    |        | POST      | api/auth/register                |
+    |        | POST      | api/auth/login                   |
+#### DESCRIPTION
 
 <ul>
 ALL endpoints require and header acess  token, obtain one by registering/login
  <li>Register to get an auth token<li/>
     <a>http://127.0.0.1:4000/api/v1/auth/register/</a>
   
-    `{  "name":"Droider" , "email":"test@sb.com", "password":"IAmAPassWOrd"}`
+    ```bash
+    {  "name":"Droider" , "email":"test@sb.com", "password":"IAmAPassWOrd" }
+    ```
+
+<li> Generate code (POST)</li>
+     http://127.0.0.1:4000/api/v1/promocode/
+    <p>Returns all the codes in the databases</p>
   
-    <li>First generate X number(codenum) of codes</li>
-        <p>When generating code, provide the venue name, lat, and long and radius</p>
-```json
-{ 
-  value: '5000',
-  expirydate: '2019-02-02',
-  codenum: '10',
-  radius: '2000',
-  address: 'Makerere Hill Road, Kampala, Uganda',
-  lat: '0.327963',
-  lng: '32.568976' }
+First generate X number(codenum) of codes
+When generating code, provide the venue name, lat, and long and radius 
 
-```
+    ```bash
+    { 
+    value: '5000',
+    expirydate: '2019-02-02',
+    codenum: '10',
+    radius: '2000',
+    address: 'Makerere Hill Road, Kampala, Uganda',
+    lat: '0.327963',
+    lng: '32.568976' }
+    ```
 
-    <li> Get All Codes</li>
+<li> Get All Codes</li>
    
        url http://127.0.0.1:4000/api/v1/promocode/
         <p>Returns all the codes in the databases</p>
@@ -69,17 +75,17 @@ ALL endpoints require and header acess  token, obtain one by registering/login
     <li>The Challenge</li>
      url http://127.0.0.1:4000/api/v1/promocode/validate 
      
-```json
+```bash
      {
         'code': 'YYeBi4u',
          'origin': 'Mutungo',
          'destination': 'Makerere Hill Road'
         }
 
-     ```
+```
 <p>Response</p>
-```json
-    { 
+
+  ```bash  { 
     origin: { origin: 'Mutungo', coordinates: [ 0.2099164, 32.5726239 ] },
     destination: { coordinates: [ 0.3279629, 32.5689763 ] },
     event:{ address: 'Makerere Hill Road, Kampala, Uganda',
