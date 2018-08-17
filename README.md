@@ -1,5 +1,5 @@
 
-<h2 align="center">Safety Event Promocodes</p>
+<h2 align="center">Safety Event Promocodes</h2>
 
 <p align="center">
 <a href="https://travis-ci.com/ruyonga/SafetyPromo"><img src="https://travis-ci.com/ruyonga/SafetyPromo.svg?branch=master" alt="Build Status"></a>
@@ -27,6 +27,7 @@ $ npm test
 ```
 
 <h4>Api</h4>
+```bash
 #### Endpoints
     | Domain | Method    | URI                              |
     |--------|-----------|------------------------------    |
@@ -38,6 +39,7 @@ $ npm test
     |        | PUT|PATCH | api/v1//promocode/status/:id     |
     |        | POST      | api/auth/register                |
     |        | POST      | api/auth/login                   |
+```
 #### DESCRIPTION
 
 <ul>
@@ -45,9 +47,9 @@ ALL endpoints require and header acess  token, obtain one by registering/login
  <li>Register to get an auth token<li/>
     <a>http://127.0.0.1:4000/api/v1/auth/register/</a>
   
-    ```bash
+```bash
     {  "name":"Droider" , "email":"test@sb.com", "password":"IAmAPassWOrd" }
-    ```
+```
 
 <li> Generate code (POST)</li>
      http://127.0.0.1:4000/api/v1/promocode/
@@ -56,7 +58,7 @@ ALL endpoints require and header acess  token, obtain one by registering/login
 First generate X number(codenum) of codes
 When generating code, provide the venue name, lat, and long and radius 
 
-    ```bash
+```bash
     { 
     value: '5000',
     expirydate: '2019-02-02',
@@ -65,15 +67,15 @@ When generating code, provide the venue name, lat, and long and radius
     address: 'Makerere Hill Road, Kampala, Uganda',
     lat: '0.327963',
     lng: '32.568976' }
-    ```
+```
 
-<li> Get All Codes</li>
-   
-       url http://127.0.0.1:4000/api/v1/promocode/
-        <p>Returns all the codes in the databases</p>
+<li> Get All Codes(GET)</li>
+    http://127.0.0.1:4000/api/v1/promocode/
+    <p>Returns all the codes in the databases</p>
 
-    <li>The Challenge</li>
-     url http://127.0.0.1:4000/api/v1/promocode/validate 
+    
+<li>The Challenge</li>
+    http://127.0.0.1:4000/api/v1/promocode/validate 
      
 ```bash
      {
@@ -85,7 +87,8 @@ When generating code, provide the venue name, lat, and long and radius
 ```
 <p>Response</p>
 
-  ```bash  { 
+  ```bash  
+    { 
     origin: { origin: 'Mutungo', coordinates: [ 0.2099164, 32.5726239 ] },
     destination: { coordinates: [ 0.3279629, 32.5689763 ] },
     event:{ address: 'Makerere Hill Road, Kampala, Uganda',
@@ -100,7 +103,15 @@ When generating code, provide the venue name, lat, and long and radius
     polyline: '__h@{yxeEy`VxU' }
 ```
 
+<li>Get Active Codes</li>
+    http://127.0.0.1:4000/api/v1/getactivecodes
 
+<p>Returns an object of all active codes.</>
      
-
 </ul>
+
+### EXTRAS
+
+<p>Visually test the api using the POSTMAN or ADVANCEDREST CLIENT.
+<p> I have develped a laravel frontend for api to visually test the end points 
+clone it: <a href="https://github.com/ruyonga/SafetyPromo-Laravel.git"> <h4>Laravel as a Frontend </h4></a>

@@ -33,7 +33,7 @@ router
     .post(VerifyToken, crtlPromtion.validateCode);
     
 router
-    .route('/getActiveCodes')
+    .route('/getactivecodes')
     .get(VerifyToken, crtlPromtion.getActiveCode);
     
 router
