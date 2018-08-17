@@ -1,10 +1,6 @@
 
 <h2 align="center">Safety Event Promocodes</h2>
 
-<p align="center">
-<a href="https://travis-ci.com/ruyonga/SafetyPromo"><img src="https://travis-ci.com/ruyonga/SafetyPromo.svg?branch=master" alt="Build Status"></a>
-</p>
-
 <p>Boda Ride Safety event Promo codes generator and validator api. For all codes generated they can be used within a specific radius to the event venue.</p>
 
 #### Installation
@@ -27,19 +23,22 @@ $ npm test
 ```
 
 <h4>Api</h4>
-```bash
+
 #### Endpoints
-    | Domain | Method    | URI                              |
-    |--------|-----------|------------------------------    |
-    |        | GET|HEAD  | api/v1/promocode                 |
-    |        | POST      | api/v1/promocode                 |
-    |        | GET|HEAD  | api/v1/getActiveCodes            |
-    |        | POST      | api/v1/promocode/validate        |
-    |        | POST      | api/promo-codes/updateAll        |
-    |        | PUT|PATCH | api/v1//promocode/status/:id     |
-    |        | POST      | api/auth/register                |
-    |        | POST      | api/auth/login                   |
+```bash
+| Domain | Method    | URI                              |
+|--------|-----------|------------------------------    |
+|        | GET|HEAD  | api/v1/promocode                 |
+|        | POST      | api/v1/promocode                 |
+|        | GET|HEAD  | api/v1/getActiveCodes            |
+|        | POST      | api/v1/promocode/validate        |
+|        | POST      | api/promo-codes/updateAll        |
+|        | PUT|PATCH | api/v1//promocode/status/:id     |
+|        | POST      | api/auth/register                |
+|        | POST      | api/auth/login     
+|
 ```
+
 #### DESCRIPTION
 
 <ul>
