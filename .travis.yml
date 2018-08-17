@@ -1,2 +1,4 @@
 language: node_js
-            - "10.1.0"
+node_js:
+  - "iojs"
+  - "10"
