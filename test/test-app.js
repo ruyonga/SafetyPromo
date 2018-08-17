@@ -65,22 +65,22 @@ describe("should return all codes", function(){
 });
 
 
-describe("should return valid code details", function(){
+// describe("should return valid code details", function(){
 
-        it("Has the code object with status 200", function(done){
-            var options = {
-                url: url+'/promocode/validate',
-                headers: {
-                  'x-access-token': token
-                },
-                form: { code: "YYeBi4u", origin: "Mutungo", destination:"Makerere University Main Gate" }
-              };
+//         it("Has the code object with status 200", function(done){
+//             var options = {
+//                 url: url+'/promocode/validate',
+//                 headers: {
+//                   'x-access-token': token
+//                 },
+//                 form: { code: "YYeBi4u", origin: "Mutungo", destination:"Makerere University Main Gate" }
+//               };
 
-            request.post(options ,function(err, httpResponse,body) {
-                this.timeout(5000);
-                expect(httpResponse.statusCode).to.equal(200);
-              done();
-            });
-          });
+//             request.post(options ,function(err, httpResponse,body) {
+//                 this.timeout(5000);
+//                 expect(httpResponse.statusCode).to.equal(200);
+//               done();
+//             });
+//           });
 
-});
+// });
