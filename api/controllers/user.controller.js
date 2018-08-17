@@ -44,7 +44,6 @@ module.exports.registerUser = (req, res) => {
  */
 module.exports.loginUser = (req, res) => {
 
-    console.log("Login....", req.body.email, req.body.password);
     User
         .findOne({$or: [
             {email: req.body.email},
