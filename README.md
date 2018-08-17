@@ -16,11 +16,12 @@ Install needed libraries via npm
 $ npm install
 ```
 
-Next, run tests to ensure everything is working
-
+Start local development sever
 ```bash
-$ npm test
+$ nodemon 
+$ node server.js
 ```
+
 
 <h4>Api</h4>
 
@@ -32,7 +33,7 @@ $ npm test
 |        | POST      | api/v1/promocode                 |
 |        | GET|HEAD  | api/v1/getActiveCodes            |
 |        | POST      | api/v1/promocode/validate        |
-|        | POST      | api/promo-codes/updateAll        |
+|        | POST      | api/v1/promocode/updateAll        |
 |        | PUT|PATCH | api/v1//promocode/status/:id     |
 |        | POST      | api/auth/register                |
 |        | POST      | api/auth/login     
